@@ -167,12 +167,31 @@ def send_dingtalk(report, today):
     return post_json(url, payload, timeout=45)
 
 
+def polish_markdown_report(report, today):
+    text = report.strip()
+    if not text.startswith("#"):
+        header = (
+            f"# 🟣 **中东 AI 角色互动情报 · {today}**\n\n"
+            "**Layla 项目日报｜沙特优先 · 阿语本地化 · 角色玩法灵感**\n\n"
+            "---\n\n"
+        )
+        text = header + text
+
+    if "**自动推送**" not in text and "自动推送" not in text[-120:]:
+        text = (
+            text.rstrip()
+            + f"\n\n---\n\n**自动推送** · 北京时间 {today} 08:30  \n"
+            "**数据来源**：竞品动态 + 搜索结果 + 应用商店/社区公开信息 + 阿语本地化观察"
+        )
+    return text
+
+
 def main():
     today = dt.datetime.now(BEIJING_TZ).strftime("%Y年%m月%d日")
     topics = read_json(TOPICS_PATH)
     prompt = read_text(PROMPT_PATH)
     search_results = collect_serper_results(topics)
-    report = call_aihubmix(prompt, topics, search_results, today)
+    report = polish_markdown_report(call_aihubmix(prompt, topics, search_results, today), today)
 
     if os.getenv("DRY_RUN") == "true":
         print(report)
