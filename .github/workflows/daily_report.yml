@@ -1,0 +1,29 @@
+name: Layla 每日情报日报
+
+on:
+  schedule:
+    # GitHub Actions 使用 UTC。UTC 00:30 = 北京时间 08:30。
+    - cron: "30 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 发送钉钉日报
+        env:
+          AIHUBMIX_API_KEY: ${{ secrets.AIHUBMIX_API_KEY }}
+          AIHUBMIX_BASE_URL: ${{ secrets.AIHUBMIX_BASE_URL }}
+          AIHUBMIX_MODEL: ${{ secrets.AIHUBMIX_MODEL }}
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+        run: python main.py
