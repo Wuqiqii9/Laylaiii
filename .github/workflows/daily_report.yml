@@ -4,11 +4,17 @@ on:
   schedule:
     # GitHub Actions 使用 UTC。UTC 00:30 = 北京时间 08:30。
     - cron: "30 0 * * *"
+    # 兜底触发：GitHub schedule 偶尔会延迟或丢弃，08:35 和 08:45 用于补发。
+    - cron: "35 0 * * *"
+    - cron: "45 0 * * *"
   workflow_dispatch:
 
 jobs:
   send-report:
     runs-on: ubuntu-latest
+    concurrency:
+      group: layla-daily-report-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: 拉取代码
         uses: actions/checkout@v4
@@ -18,7 +24,19 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: 计算北京时间日期
+        id: report-date
+        run: echo "date_key=$(TZ=Asia/Shanghai date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: 检查今日是否已经发送
+        id: sent-cache
+        uses: actions/cache@v4
+        with:
+          path: .report-sent
+          key: layla-dingtalk-report-${{ steps.report-date.outputs.date_key }}
+
       - name: 发送钉钉日报
+        if: steps.sent-cache.outputs.cache-hit != 'true'
         env:
           AIHUBMIX_API_KEY: ${{ secrets.AIHUBMIX_API_KEY }}
           AIHUBMIX_BASE_URL: ${{ secrets.AIHUBMIX_BASE_URL }}
@@ -27,3 +45,13 @@ jobs:
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
         run: python main.py
+
+      - name: 标记今日已发送
+        if: steps.sent-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .report-sent
+          echo "sent at $(TZ=Asia/Shanghai date)" > .report-sent/sent.txt
+
+      - name: 今日已发送，跳过兜底
+        if: steps.sent-cache.outputs.cache-hit == 'true'
+        run: echo "今日日报已发送，跳过本次兜底触发。"

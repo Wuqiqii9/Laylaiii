@@ -174,7 +174,10 @@ def send_dingtalk(report, today):
             "text": text,
         },
     }
-    return post_json(url, payload, timeout=45)
+    result = post_json(url, payload, timeout=45)
+    if result.get("errcode") not in (None, 0):
+        raise RuntimeError(f"钉钉推送失败：{json.dumps(result, ensure_ascii=False)}")
+    return result
 
 
 def polish_markdown_report(report, today):
