@@ -31,8 +31,22 @@
     "Saudi Arabic slang youth TikTok phrases",
     "Hejazi Arabic slang young people",
     "Najdi Arabic phrases Saudi youth",
-    "Khaleeji Arabic slang AI chatbot"
+    "Khaleeji Arabic slang AI chatbot",
+    "Saudi Arabia upcoming holidays next month customs",
+    "Saudi Arabia Islamic holidays next month dates",
+    "Middle East upcoming festivals next month customs traditions",
+    "Gulf countries upcoming holidays next month celebrations",
+    "Saudi National Day activities customs",
+    "Ramadan Eid Saudi Arabia customs app campaign ideas",
+    "UAE Saudi Egypt public holidays next month"
   ],
+  "max_search_queries": 20,
+  "festival_watchlist": {
+    "lookahead_days": 45,
+    "priority_regions": ["沙特阿拉伯", "阿联酋", "埃及", "科威特", "卡塔尔", "巴林", "阿曼", "泛海湾地区"],
+    "holiday_types": ["伊斯兰节日", "国家节日", "公众假期", "大型文化娱乐季", "购物/旅游季", "社交媒体高热度节日"],
+    "required_fields": ["公历日期", "地区", "节日/活动名称", "习俗与活动内容", "用户情绪/社交行为", "Layla 可做的角色/活动方案", "文化与内容风险"]
+  },
   "daily_language_focus": [
     "Hejazi 日常聊天表达",
     "Najdi 男性强势角色表达",

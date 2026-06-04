@@ -64,7 +64,8 @@ def collect_serper_results(topics):
         ]
 
     results = []
-    for query in topics.get("search_queries", [])[:12]:
+    max_queries = topics.get("max_search_queries", 12)
+    for query in topics.get("search_queries", [])[:max_queries]:
         payload = {
             "q": query,
             "num": 5,
@@ -100,9 +101,18 @@ def call_aihubmix(system_prompt, topics, search_results, today):
     api_key = require_env("AIHUBMIX_API_KEY")
     base_url = os.getenv("AIHUBMIX_BASE_URL", "https://aihubmix.com/v1").rstrip("/")
     model = os.getenv("AIHUBMIX_MODEL", "gpt-4o-mini")
+    now = dt.datetime.now(BEIJING_TZ)
+    lookahead_days = topics.get("festival_watchlist", {}).get("lookahead_days", 45)
+    festival_window_end = now + dt.timedelta(days=lookahead_days)
 
     user_payload = {
         "date": today,
+        "festival_window": {
+            "start": now.strftime("%Y-%m-%d"),
+            "end": festival_window_end.strftime("%Y-%m-%d"),
+            "timezone": "Asia/Shanghai",
+            "instruction": "请重点关注这个窗口内的中东/沙特/海湾节日、公众假期和重要文化活动。"
+        },
         "topics": topics,
         "search_results": search_results,
         "instruction": "请基于以上资料生成今天的钉钉群日报。若资料不足，请明确标注待验证，不要编造事实。",
