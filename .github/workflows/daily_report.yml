@@ -32,26 +32,6 @@ jobs:
         id: report-date
         run: echo "date_key=$(TZ=Asia/Shanghai date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
-      - name: 检查是否在发送窗口
-        id: delivery-window
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "allowed=true" >> "$GITHUB_OUTPUT"
-            echo "手动触发，允许立即发送。"
-            exit 0
-          fi
-
-          current_hm=$(TZ=Asia/Shanghai date +%H%M)
-          echo "当前北京时间 HHMM=$current_hm"
-
-          if [ "$current_hm" -ge 820 ] && [ "$current_hm" -le 915 ]; then
-            echo "allowed=true" >> "$GITHUB_OUTPUT"
-            echo "在发送窗口内，允许发送。"
-          else
-            echo "allowed=false" >> "$GITHUB_OUTPUT"
-            echo "不在北京时间 08:20-09:15 发送窗口，跳过，避免下午延迟推送。"
-          fi
-
       - name: 检查今日是否已经发送
         id: sent-cache
         uses: actions/cache@v4
@@ -60,7 +40,7 @@ jobs:
           key: layla-dingtalk-report-${{ steps.report-date.outputs.date_key }}
 
       - name: 发送钉钉日报
-        if: github.event_name == 'workflow_dispatch' || (steps.sent-cache.outputs.cache-hit != 'true' && steps.delivery-window.outputs.allowed == 'true')
+        if: github.event_name == 'workflow_dispatch' || steps.sent-cache.outputs.cache-hit != 'true'
         env:
           AIHUBMIX_API_KEY: ${{ secrets.AIHUBMIX_API_KEY }}
           AIHUBMIX_BASE_URL: ${{ secrets.AIHUBMIX_BASE_URL }}
@@ -71,7 +51,7 @@ jobs:
         run: python main.py
 
       - name: 标记今日已发送
-        if: github.event_name != 'workflow_dispatch' && steps.sent-cache.outputs.cache-hit != 'true' && steps.delivery-window.outputs.allowed == 'true'
+        if: github.event_name != 'workflow_dispatch' && steps.sent-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p .report-sent
           echo "sent at $(TZ=Asia/Shanghai date)" > .report-sent/sent.txt
@@ -79,7 +59,3 @@ jobs:
       - name: 今日已发送，跳过兜底
         if: github.event_name != 'workflow_dispatch' && steps.sent-cache.outputs.cache-hit == 'true'
         run: echo "今日日报已发送，跳过本次兜底触发。"
-
-      - name: 不在发送窗口，跳过
-        if: github.event_name != 'workflow_dispatch' && steps.delivery-window.outputs.allowed != 'true'
-        run: echo "本次 schedule 延迟到发送窗口外，已跳过，不向钉钉推送。"
