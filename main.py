@@ -190,11 +190,10 @@ def polish_markdown_report(report, today):
         )
         text = header + text
 
-    if "**自动推送**" not in text and "自动推送" not in text[-120:]:
+    if "**数据来源**" not in text and "数据来源" not in text[-120:]:
         text = (
             text.rstrip()
-            + f"\n\n---\n\n**自动推送** · 北京时间 {today} 08:30  \n"
-            "**数据来源**：竞品动态 + 搜索结果 + 应用商店/社区公开信息 + 阿语本地化观察"
+            + "\n\n---\n\n**数据来源**：竞品动态 + 搜索结果 + 应用商店/社区公开信息 + 阿语本地化观察"
         )
     return text
 
